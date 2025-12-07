@@ -4,8 +4,6 @@ export const config = {
   runtime: "nodejs18.x",
 };
 
-const DEMO_USER_ID = "00000000-0000-0000-0000-000000000001";
-
 const jsonResponse = (body: unknown, init?: ResponseInit) =>
   new Response(JSON.stringify(body), {
     status: init?.status ?? 200,
@@ -19,7 +17,8 @@ export default async function handler(req: Request): Promise<Response> {
   const collection = await getBooksCollection();
 
   if (req.method === "GET") {
-    const docs = await collection.find().sort({ created_at: -1 }).toArray();
+    // Sort by date_recorded (descending), then created_at (descending)
+    const docs = await collection.find().sort({ date_recorded: -1, created_at: -1 }).toArray();
     return jsonResponse({ books: docs.map(serializeBook) });
   }
 
@@ -38,15 +37,10 @@ export default async function handler(req: Request): Promise<Response> {
       return jsonResponse({ message: "Title and authors are required" }, { status: 400 });
     }
 
-    if (isbn) {
-      const existing = await collection.findOne({ isbn });
-      if (existing) {
-        return jsonResponse({ message: "A book with this ISBN already exists." }, { status: 409 });
-      }
-    }
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
 
     const insertDoc = {
-      user_id: DEMO_USER_ID,
       title,
       author: authors,
       isbn: isbn || null,
@@ -55,6 +49,7 @@ export default async function handler(req: Request): Promise<Response> {
       publisher: payload.publisher || null,
       genre: payload.genre || null,
       description: payload.description || null,
+      date_recorded: today,
       created_at: new Date().toISOString(),
     };
 

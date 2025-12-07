@@ -46,50 +46,7 @@ export default async function handler(req: Request): Promise<Response> {
     return jsonResponse({ book: serializeBook(doc) });
   }
 
-  if (req.method === "PUT" || req.method === "PATCH") {
-    const payload = await req.json().catch(() => null);
-
-    if (!payload) {
-      return jsonResponse({ message: "Invalid JSON payload" }, { status: 400 });
-    }
-
-    const updatePayload = {
-      title: payload.title ?? null,
-      author: payload.authors ?? payload.author ?? null,
-      isbn: payload.isbn ?? null,
-      year: payload.year ?? null,
-      publisher: payload.publisher ?? null,
-      genre: payload.genre ?? null,
-      description: payload.description ?? null,
-      cover_url: payload.cover_url ?? null,
-    };
-
-    const cleanedPayload = Object.fromEntries(
-      Object.entries(updatePayload).filter(([, value]) => value !== undefined)
-    );
-
-    const result = await collection.findOneAndUpdate(
-      { _id: objectId },
-      { $set: cleanedPayload },
-      { returnDocument: "after" }
-    );
-
-    if (!result.value) {
-      return jsonResponse({ message: "Book not found" }, { status: 404 });
-    }
-
-    return jsonResponse({ book: serializeBook(result.value) });
-  }
-
-  if (req.method === "DELETE") {
-    const result = await collection.findOneAndDelete({ _id: objectId });
-
-    if (!result.value) {
-      return jsonResponse({ message: "Book not found" }, { status: 404 });
-    }
-
-    return jsonResponse({ message: "Book deleted" });
-  }
+  // Edit and delete functionality removed - books are read-only records
 
   return jsonResponse({ message: "Method Not Allowed" }, { status: 405 });
 }

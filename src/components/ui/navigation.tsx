@@ -1,21 +1,20 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Book, Plus, Library } from "lucide-react";
+import { Book, Camera, Library } from "lucide-react";
 
 export function Navigation() {
   const location = useLocation();
 
   const navItems = [
-    { path: "/", label: "Home", icon: Book },
-    { path: "/add", label: "Add Book", icon: Plus },
-    { path: "/library", label: "Library", icon: Library },
+    { path: "/", label: "Record", icon: Camera },
+    { path: "/list", label: "View List", icon: Library },
   ];
 
   return (
     <nav className="flex items-center justify-between p-4 bg-card border-b border-border">
       <Link to="/" className="flex items-center gap-2 text-xl font-bold text-book-spine">
         <Book className="h-6 w-6" />
-        BookSnap
+        Catat Buku RBR
       </Link>
       
       <div className="hidden md:flex items-center gap-6">
@@ -38,7 +37,7 @@ export function Navigation() {
 
       {/* Mobile menu */}
       <div className="flex md:hidden items-center gap-4">
-        {navItems.slice(1).map(({ path, label, icon: Icon }) => (
+        {navItems.map(({ path, label, icon: Icon }) => (
           <Link
             key={path}
             to={path}

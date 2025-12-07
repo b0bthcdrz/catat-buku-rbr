@@ -1,6 +1,6 @@
 import { MongoClient, Collection, Document, WithId } from "mongodb";
 
-const dbName = process.env.MONGODB_DB_NAME ?? "book_snap_shelf";
+const dbName = process.env.MONGODB_DB_NAME ?? "catat_buku_rbr";
 
 type GlobalWithMongo = typeof globalThis & {
   _mongoClientPromise?: Promise<MongoClient>;
@@ -52,6 +52,7 @@ export function serializeBook(doc: WithId<BookDocument>) {
     publisher: doc.publisher,
     genre: doc.genre,
     description: doc.description,
+    date_recorded: doc.date_recorded,
     created_at: doc.created_at,
   };
 }

@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpenCheck, Loader2, Save } from "lucide-react";
+import { BookOpenCheck, Loader2, Save, Barcode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchBookByIsbn } from "@/lib/googleBooks";
 import ISBNScanner from "@/components/ISBNScanner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type BookData = {
   title: string;
@@ -22,6 +24,7 @@ export default function Capture() {
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,6 +37,7 @@ export default function Capture() {
   }, [toast]);
 
   const handleISBNDetected = async (isbn: string) => {
+    setIsScanning(false);
     try {
       setIsLookingUp(true);
       const data = await fetchBookByIsbn(isbn);
@@ -123,23 +127,44 @@ export default function Capture() {
     }
   };
 
+  const updateField = (field: keyof BookData, value: string) => {
+    setBookData((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
-          <div className="text-center mb-4">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Record Book</h1>
+          <div className="text-center mb-4 space-y-2">
+            <h1 className="text-3xl font-bold text-foreground">Record Book</h1>
             <p className="text-muted-foreground">
-              Scan the ISBN barcode to record a book you've read today.
+              Tap the button below to open the camera and scan an ISBN barcode.
             </p>
+            {!isScanning && (
+              <Button
+                className="mt-2 bg-gradient-hero hover:opacity-90"
+                size="lg"
+                onClick={() => {
+                  setBookData(null);
+                  setIsScanning(true);
+                }}
+              >
+                <Barcode className="h-4 w-4 mr-2" />
+                Record a new book
+              </Button>
+            )}
           </div>
 
-          <ISBNScanner 
-            onISBNDetected={handleISBNDetected}
-            className="w-full"
-          />
+          {isScanning && (
+            <ISBNScanner
+              isActive={isScanning}
+              onISBNDetected={handleISBNDetected}
+              onCancel={() => setIsScanning(false)}
+              className="w-full"
+            />
+          )}
 
           {isLookingUp && (
             <Card>
@@ -155,7 +180,7 @@ export default function Capture() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BookOpenCheck className="h-5 w-5" />
-                  Book Details
+                  Confirm &amp; Save
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -177,20 +202,26 @@ export default function Capture() {
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 space-y-2">
-                    <div>
-                      <h3 className="font-semibold text-lg">{bookData.title}</h3>
-                      <p className="text-muted-foreground">{bookData.authors}</p>
+                  <div className="flex-1 space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        value={bookData.title}
+                        onChange={(e) => updateField("title", e.target.value)}
+                        placeholder="Book title"
+                      />
                     </div>
-                    {bookData.year && (
-                      <p className="text-sm text-muted-foreground">Published: {bookData.year}</p>
-                    )}
-                    {bookData.publisher && (
-                      <p className="text-sm text-muted-foreground">Publisher: {bookData.publisher}</p>
-                    )}
-                    {bookData.genre && (
-                      <p className="text-sm text-muted-foreground">Genre: {bookData.genre}</p>
-                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="authors">Author(s)</Label>
+                      <Input
+                        id="authors"
+                        value={bookData.authors}
+                        onChange={(e) => updateField("authors", e.target.value)}
+                        placeholder="Author names"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">ISBN: {bookData.isbn}</p>
                   </div>
                 </div>
 
@@ -215,7 +246,7 @@ export default function Capture() {
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Record This Book
+                      Save Book
                     </>
                   )}
                 </Button>

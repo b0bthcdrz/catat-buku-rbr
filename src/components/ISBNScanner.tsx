@@ -74,7 +74,7 @@ export default function ISBNScanner({ onISBNDetected, className }: ISBNScannerPr
 		if (!isReady || isScanning) return;
 		if (!videoContainerRef.current) return;
 		setIsScanning(true);
-		setStatus("Scanning...");
+		setStatus("Starting scanner...");
 		detectionLockRef.current = false;
 
 		await Quagga.init({
@@ -83,13 +83,17 @@ export default function ISBNScanner({ onISBNDetected, className }: ISBNScannerPr
 				target: videoContainerRef.current,
 				constraints: {
 					facingMode: "environment",
+					width: { min: 640, ideal: 1280 },
+					height: { min: 480, ideal: 720 },
 					aspectRatio: { min: 1, max: 2 },
 				},
-				area: { top: "35%", right: "10%", left: "10%", bottom: "35%" },
+				area: { top: "15%", right: "10%", left: "10%", bottom: "15%" },
 			},
+			locate: true,
 			locator: { patchSize: "medium", halfSample: true },
 			numOfWorkers: navigator.hardwareConcurrency ? Math.max(1, navigator.hardwareConcurrency - 1) : 2,
-			decoder: { readers: ["ean_reader", "ean_8_reader", "upc_reader"] },
+			decoder: { readers: ["ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader", "code_128_reader"] },
+			frequency: 5,
 		}, (err) => {
 			if (err) {
 				console.error(err);
@@ -101,6 +105,7 @@ export default function ISBNScanner({ onISBNDetected, className }: ISBNScannerPr
 			Quagga.start();
 			const video = (videoContainerRef.current!.querySelector("video") as HTMLVideoElement) || null;
 			videoElRef.current = video;
+			setStatus("Scanning...");
 		});
 
 		Quagga.onProcessed((_result) => {

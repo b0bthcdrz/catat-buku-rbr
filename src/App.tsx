@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Capture from "./pages/Capture";
 import List from "./pages/List";
 import NotFound from "./pages/NotFound";
+import { StatusFooter } from "./components/StatusFooter";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/list" element={<List />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <StatusFooter />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

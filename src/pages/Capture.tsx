@@ -25,6 +25,7 @@ export default function Capture() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [pendingIsbn, setPendingIsbn] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,11 +37,18 @@ export default function Capture() {
     }
   }, [toast]);
 
-  const handleISBNDetected = async (isbn: string) => {
+  const handleISBNDetected = (isbn: string) => {
+    // Pause scanning and ask user to confirm ISBN before lookup
     setIsScanning(false);
+    setBookData(null);
+    setPendingIsbn(isbn);
+  };
+
+  const confirmLookup = async () => {
+    if (!pendingIsbn) return;
     try {
       setIsLookingUp(true);
-      const data = await fetchBookByIsbn(isbn);
+      const data = await fetchBookByIsbn(pendingIsbn);
 
       if (!data) {
         toast({
@@ -54,7 +62,7 @@ export default function Capture() {
       setBookData({
         title: data.title ?? "",
         authors: (data.authors ?? []).join(", "),
-        isbn: isbn,
+        isbn: pendingIsbn,
         year: data.year ?? "",
         publisher: data.publisher ?? "",
         genre: data.genre ?? "",
@@ -148,6 +156,7 @@ export default function Capture() {
                 size="lg"
                 onClick={() => {
                   setBookData(null);
+                setPendingIsbn(null);
                   setIsScanning(true);
                 }}
               >
@@ -164,6 +173,33 @@ export default function Capture() {
               onCancel={() => setIsScanning(false)}
               className="w-full"
             />
+          )}
+
+          {pendingIsbn && !isLookingUp && !bookData && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Confirm ISBN</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Detected ISBN: <span className="font-semibold">{pendingIsbn}</span></p>
+                <div className="flex gap-3">
+                  <Button className="flex-1 bg-gradient-hero hover:opacity-90" onClick={confirmLookup}>
+                    Lookup this ISBN
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    variant="outline"
+                    onClick={() => {
+                      setPendingIsbn(null);
+                      setBookData(null);
+                      setIsScanning(true);
+                    }}
+                  >
+                    Rescan
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {isLookingUp && (

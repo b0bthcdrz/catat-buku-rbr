@@ -1,7 +1,7 @@
 import { getBooksCollection, serializeBook } from "./_lib/mongo";
 
 export const config = {
-  runtime: "nodejs18.x",
+  runtime: "nodejs",
 };
 
 const jsonResponse = (body: unknown, init?: ResponseInit) =>

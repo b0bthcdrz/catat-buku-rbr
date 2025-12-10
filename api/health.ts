@@ -50,3 +50,4 @@ export default async function handler(): Promise<Response> {
 
   return jsonResponse(results);
 }
+
